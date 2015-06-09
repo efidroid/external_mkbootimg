@@ -8,14 +8,14 @@ set(CMAKE_C_FLAGS "-Wall -Wextra -Wshadow -Werror -Wno-unused-result")
 # mkbootimg
 add_executable(mkbootimg src/mkbootimg.c)
 set_property(TARGET mkbootimg PROPERTY INCLUDE_DIRECTORIES
-	${CMAKE_SOURCE_DIR}/include
+	${PROJECT_SOURCE_DIR}/include
 )
 target_link_libraries(mkbootimg mincrypt)
 
 # unpackbootimg
 add_executable(unpackbootimg src/unpackbootimg.c)
 set_property(TARGET unpackbootimg PROPERTY INCLUDE_DIRECTORIES
-	${CMAKE_SOURCE_DIR}/include
+	${PROJECT_SOURCE_DIR}/include
 )
 target_link_libraries(unpackbootimg mincrypt)
 

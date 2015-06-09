@@ -15,5 +15,5 @@ add_library(mincrypt STATIC ${MINCRYPT_SOURCES})
 # includes
 set_property(TARGET mincrypt PROPERTY INCLUDE_DIRECTORIES
 	${PROJECT_SOURCE_DIR}
-	${CMAKE_SOURCE_DIR}/include
+	${PROJECT_SOURCE_DIR}/../../include
 )
