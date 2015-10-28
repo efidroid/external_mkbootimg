@@ -16,7 +16,7 @@ int read_padding(FILE* f, unsigned itemsize, int pagesize)
 {
     byte* buf = (byte*)malloc(sizeof(byte) * pagesize);
     unsigned pagemask = pagesize - 1;
-    ssize_t count;
+    unsigned count;
 
     if((itemsize & pagemask) == 0) {
         free(buf);
