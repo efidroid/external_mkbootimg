@@ -163,6 +163,29 @@ int main(int argc, char** argv)
     fwrite(kernel, header.kernel_size, 1, k);
     fclose(k);
 
+    // get kernel size
+    uint32_t zimage_start, zimage_end, zimage_size;
+    memcpy(&zimage_start, kernel + 0x28, sizeof(zimage_start));
+    memcpy(&zimage_end,   kernel + 0x2C, sizeof(zimage_end));
+    zimage_size = zimage_end - zimage_start;
+
+    // appended fdt
+    if(zimage_size<header.kernel_size) {
+        // zImage
+        sprintf(tmp, "%s/%s", directory, basename(filename));
+        strcat(tmp, "-zImage.real");
+        FILE *kr = fopen(tmp, "wb");
+        fwrite(kernel, zimage_size, 1, kr);
+        fclose(kr);
+
+        // fdt
+        sprintf(tmp, "%s/%s", directory, basename(filename));
+        strcat(tmp, "-zImage.fdt");
+        FILE *fdt = fopen(tmp, "wb");
+        fwrite(kernel + zimage_size, header.kernel_size - zimage_size, 1, fdt);
+        fclose(fdt);
+    }
+
     //printf("total read: %d\n", header.kernel_size);
     total_read += read_padding(f, header.kernel_size, pagesize);
 
