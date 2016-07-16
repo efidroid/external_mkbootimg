@@ -13,11 +13,11 @@ set_property(TARGET mkbootimg PROPERTY INCLUDE_DIRECTORIES
 target_link_libraries(mkbootimg mincrypt)
 
 # unpackbootimg
-add_executable(unpackbootimg src/unpackbootimg.c)
+add_executable(unpackbootimg src/unpackbootimg.c src/decompress.c)
 set_property(TARGET unpackbootimg PROPERTY INCLUDE_DIRECTORIES
 	${PROJECT_SOURCE_DIR}/include
 )
-target_link_libraries(unpackbootimg mincrypt)
+target_link_libraries(unpackbootimg mincrypt z)
 
 # mincrypt
 add_subdirectory(lib/libmincrypt)

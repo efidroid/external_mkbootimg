@@ -7,6 +7,7 @@
 #include <limits.h>
 #include <libgen.h>
 
+#include "decompress.h"
 #include "mincrypt/sha.h"
 #include "bootimg.h"
 
@@ -163,27 +164,60 @@ int main(int argc, char** argv)
     fwrite(kernel, header.kernel_size, 1, k);
     fclose(k);
 
-    // get kernel size
-    uint32_t zimage_start, zimage_end, zimage_size;
-    memcpy(&zimage_start, kernel + 0x28, sizeof(zimage_start));
-    memcpy(&zimage_end,   kernel + 0x2C, sizeof(zimage_end));
-    zimage_size = zimage_end - zimage_start;
+    if(is_gzip_package(kernel, header.kernel_size)) {
+        // open src
+        FILE *kin = fopen(tmp, "rb");
 
-    // appended fdt
-    if(zimage_size<header.kernel_size) {
-        // zImage
+        // open dst
         sprintf(tmp, "%s/%s", directory, basename(filename));
-        strcat(tmp, "-zImage.real");
-        FILE *kr = fopen(tmp, "wb");
-        fwrite(kernel, zimage_size, 1, kr);
-        fclose(kr);
+        strcat(tmp, "-zImage.gunzip");
+        FILE *kout = fopen(tmp, "wb");
 
-        // fdt
-        sprintf(tmp, "%s/%s", directory, basename(filename));
-        strcat(tmp, "-zImage.fdt");
-        FILE *fdt = fopen(tmp, "wb");
-        fwrite(kernel + zimage_size, header.kernel_size - zimage_size, 1, fdt);
-        fclose(fdt);
+        // decompress
+        size_t dtbpos;
+        int ret = decompress_file(kin, kout, &dtbpos);
+
+        // error check
+        if(ret) {
+            zerr(ret);
+        }
+        else {
+            // fdt
+            sprintf(tmp, "%s/%s", directory, basename(filename));
+            strcat(tmp, "-zImage.fdt");
+            FILE *fdt = fopen(tmp, "wb");
+            fwrite(kernel + dtbpos, header.kernel_size - dtbpos, 1, fdt);
+            fclose(fdt);
+        }
+
+        // close files
+        fclose(kin);
+        fclose(kout);
+    }
+
+    else {
+        // get kernel size
+        uint32_t zimage_start, zimage_end, zimage_size;
+        memcpy(&zimage_start, kernel + 0x28, sizeof(zimage_start));
+        memcpy(&zimage_end,   kernel + 0x2C, sizeof(zimage_end));
+        zimage_size = zimage_end - zimage_start;
+
+        // appended fdt
+        if(zimage_size<header.kernel_size) {
+            // zImage
+            sprintf(tmp, "%s/%s", directory, basename(filename));
+            strcat(tmp, "-zImage.real");
+            FILE *kr = fopen(tmp, "wb");
+            fwrite(kernel, zimage_size, 1, kr);
+            fclose(kr);
+
+            // fdt
+            sprintf(tmp, "%s/%s", directory, basename(filename));
+            strcat(tmp, "-zImage.fdt");
+            FILE *fdt = fopen(tmp, "wb");
+            fwrite(kernel + zimage_size, header.kernel_size - zimage_size, 1, fdt);
+            fclose(fdt);
+        }
     }
 
     //printf("total read: %d\n", header.kernel_size);
