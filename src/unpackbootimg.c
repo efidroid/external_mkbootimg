@@ -11,6 +11,23 @@
 #include "mincrypt/sha.h"
 #include "bootimg.h"
 
+#define IS_ARM64(ptr) (((struct kernel64_hdr *)(ptr))->magic_64 == KERNEL64_HDR_MAGIC) ? 1 : 0
+#define KERNEL64_HDR_MAGIC 0x644D5241 /* ARM64 */
+
+struct kernel64_hdr
+{
+    uint32_t insn;
+    uint32_t res1;
+    uint64_t text_offset;
+    uint64_t res2;
+    uint64_t res3;
+    uint64_t res4;
+    uint64_t res5;
+    uint64_t res6;
+    uint32_t magic_64;
+    uint32_t res7;
+};
+
 typedef unsigned char byte;
 
 int read_padding(FILE* f, unsigned itemsize, int pagesize)
@@ -195,7 +212,7 @@ int main(int argc, char** argv)
         fclose(kout);
     }
 
-    else {
+    else if(!IS_ARM64(kernel)) {
         // get kernel size
         uint32_t zimage_start, zimage_end, zimage_size;
         memcpy(&zimage_start, kernel + 0x28, sizeof(zimage_start));
